@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wilbert Guzmán | Developer Portfolio</title>
+    <meta name="description" content="The web development portfolio of Wilbert Guzmán. Specializing in modern front-end development and responsive design."> 
+
+    <link rel="icon" type="image/svg+xml" href="images/favicons/logo.svg"> 
+    <link rel="icon" href="images/favicons/logo-16.png" sizes="16x16">
+    <link rel="icon" href="images/favicons/logo-32.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="images/favicons/logo-180.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <div id="bug-container"></div>
+
+    <main>
+        <div class="hero">
+            <h1 class="hero-title">Wilbert Guzmán</h1>
+            <p class="hero-subtitle">Learning to Speak Fluent Computer</p>
+        </div>
+
+        <section class="intro-section">
+            <p>Welcome to my Software Developer Lair, where <strong class="intro-emphasis">absolutely nothing is on fire</strong>
+                (at the moment... allegedly)</p>
+
+            <p class="intro-sub">Here you will find:</p>
+
+            <ol class="fun-list">
+                <li>Code I <em>wrote</em>.</li>
+                <li>Bugs I have legally adopted as features.</li>
+                <li>Code that worked once and then mysteriously never again.</li>
+                <li>One file lovingly named <code>final_FINAL_REALLYFINAL2.js</code>.</li>
+            </ol>
+
+            <p class="learning-text">
+                I'm <strong>learning</strong>.
+                I'm <strong>building</strong>.
+                And sometimes I'm <strong>googling things I should already know</strong>.
+            </p>
+        </section>
+
+        <section class="work-hub">
+            <h2 class="hub-title">Check Out My Work</h2>
+            <div class="hub-grid">
+                <a href="about.html" class="hub-card">
+                    <span class="hub-icon">👨🏽‍💻</span>
+                    <h3>About Me</h3>
+                    <p>The Digital Mechanic</p>
+                </a>
+                <a href="garage.html" class="hub-card">
+                    <span class="hub-icon">🏎️</span>
+                    <h3>The Garage</h3>
+                    <p>Blue Venom</p>
+                </a>
+                <a href="fitness.html" class="hub-card">
+                    <span class="hub-icon">💪🏽</span>
+                    <h3>Fitness</h3>
+                    <p>The Iron Temple</p>
+                </a>
+                <a href="https://wil.styled" target="_blank" rel="noopener noreferrer" class="hub-card">
+                    <span class="hub-icon">🎨</span>
+                    <h3>Wil.Styled</h3>
+                    <p>Web Design Portfolio</p>
+                </a>
+            </div>
+        </section>
+
+        <div class="clap-section">
+            <p class="clap-intro">If something here looks impressive, please clap:</p>
+            <button id="clapBtn">👏🏽</button>
+            <div id="clapFeedback"></div>
+        </div>
+
+        <div class="secret-wrapper">
+            <input type="text" id="secretInput" placeholder="Hint: Best Coast" autocomplete="off">
+        </div>
+
+        <div class="footer-pre">
+            <p><strong>Enjoy your stay</strong></p>
+            <p class="bug-msg">Mind the bugs. They bite.</p>
+        </div>
+
+        <footer>
+            <div class="footer-deck">
+                <span>&copy; 2026 Wilbert Guzmán</span>
+                <div class="social-group">
+                    <a href="https://instagram.com/wil.styled" target="_blank" rel="noopener noreferrer">
+                        <img src="images/instagram-logo.png" alt="Instagram" class="insta-icon">
+                    </a>
+                    <button class="contact-trigger">Contact Me</button>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <div id="contact-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <h3>Get in Touch</h3>
+            <div class="contact-options">
+                <a href="mailto:wil.styled@gmail.com" class="contact-btn"><span>📧</span>Email</a>
+                <a href="tel:7148032941" class="contact-btn"><span>📞</span>Call</a>
+                <a href="sms:7148032941" class="contact-btn"><span>💬</span>Text</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

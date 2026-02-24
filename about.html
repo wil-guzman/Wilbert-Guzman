@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Wilbert Guzmán</title>
+    <meta name="description" content="Learn more about Wilbert Guzmán's background in web development, technical skills, and the journey behind wil.styled."> 
+
+    <link rel="icon" type="image/svg+xml" href="images/favicons/logo.svg"> 
+    <link rel="icon" href="images/favicons/logo-16.png" sizes="16x16">
+    <link rel="icon" href="images/favicons/logo-32.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="images/favicons/logo-180.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body class="dodgers-mode">
+    <main>
+        <div class="back-nav">
+            <a href="index.html" class="back-btn">← Back to Lair</a>
+        </div>
+
+        <div class="hero">
+            <h1 class="hero-title sub">Behind the Code</h1>
+            <p class="hero-subtitle">Developer • Builder • Lifter</p>
+        </div>
+
+        <div class="bento-grid">
+            
+            <div class="bento-item tilt-card reveal">
+                <img src="images/wilbert.jpg" alt="Wilbert Guzman" class="bento-img">
+                <div class="glare"></div>
+            </div>
+
+            <div class="bento-item passions-card reveal" style="transition-delay: 0.1s;">
+                <h3 class="bento-title">Core Passions</h3>
+                <div class="passion-tags">
+                    <span class="p-tag"><img src='images/coding-sprite.png' alt="coding" class="sprite-icon">Coding</span>
+                    <span class="p-tag"><img src='images/dumbbell-sprite.png' alt="dumbbell" class="sprite-icon">Gym</span>
+                    <span class="p-tag"><img src='images/gogeta-sprite.webp' alt="gogeta" class="sprite-icon">DragonBall</span>
+                    <span class="p-tag"><img src='images/eren-titan-sprite.png' alt="eren" class="sprite-icon">AoT</span>
+                    <span class="p-tag"><img src='images/raiders-sprite.png' alt="raiders" class="sprite-icon">Raiders</span>
+                    <span class="p-tag"><img src='images/lakers-sprite.webp' alt="lakers" class="sprite-icon">Lakers</span>
+                    <span class="p-tag"><img src='images/dodgers-sprite.png' alt="dodgers" class="sprite-icon">Dodgers</span>
+                </div>
+            </div>
+
+            <div class="bento-item bio-card reveal" style="transition-delay: 0.2s;">
+                <h2>Who I Am</h2>
+                <p class="bio-text">
+                    Getting into coding and enjoying the journey of building digital experiences. Have a love for hypertrophy and building muscle. Enjoy
+                    the process of learning and growing in the world of web development. Love taking Blue Venom out on a drive whenever the opportunity arises.
+                    <br><br>
+                    When I'm not debugging, you will find me hanging out with my family and/or my fur babies. You can also catch me watching sports or anime
+                    on my free time. DragonBall is my all time favorite, while Attack on Titan is my current watch.
+                </p>
+            </div>
+
+            <div class="bento-item music-card reveal" style="transition-delay: 0.3s;">
+                <h3 class="bento-title">On Rotation</h3>
+                <div class="music-player">
+                    <div class="img-container">
+                        <img id="cover" src="" alt="Album Cover">
+                    </div>
+                    <div class="song-info">
+                        <h3 id="title">Loading...</h3>
+                        <p id="artist">Waiting for Last.fm</p>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <div class="footer-deck">
+                <span>&copy; 2026 Wilbert Guzmán</span>
+                <div class="social-group">
+                    <a href="https://instagram.com/wil.styled" target="_blank" rel="noopener noreferrer">
+                        <img src="images/instagram-logo.png" alt="Instagram" class="insta-icon">
+                    </a>
+                    <button class="contact-trigger">Contact Me</button>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <h3>Get in Touch</h3>
+            <div class="contact-options">
+                <a href="mailto:wil.styled@gmail.com" class="contact-btn"><span>📧</span>Email</a>
+                <a href="tel:7148032941" class="contact-btn"><span>📞</span>Call</a>
+                <a href="sms:7148032941" class="contact-btn"><span>💬</span>Text</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

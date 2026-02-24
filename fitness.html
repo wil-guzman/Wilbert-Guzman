@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Iron Temple | Workout Log</title>
+    <meta name="description" content="Explore Wilbert Guzmán's 5-day optimal split focused on hypertrophy, symmetry, and disciplined strength training."> 
+
+    <link rel="icon" type="image/svg+xml" href="images/favicons/logo.svg"> 
+    <link rel="icon" href="images/favicons/logo-16.png" sizes="16x16">
+    <link rel="icon" href="images/favicons/logo-32.png" sizes="32x32">
+    <link rel="apple-touch-icon" href="images/favicons/logo-180.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body class="fitness-mode">
+    <main>
+        <div class="back-nav">
+            <a href="index.html" class="back-btn">← Back to Lair</a>
+        </div>
+
+        <div class="hero">
+            <h1 class="hero-title sub">The Iron Temple</h1>
+            <p class="hero-subtitle">Consistency is King</p>
+        </div>
+
+        <div class="dashboard-header">
+            <div class="cal-controls">
+                <button class="cal-btn" onclick="window.changeMonth(-1)">&lt;</button>
+                <div class="cal-title-container">
+                    <h3 id="cal-month-title">Loading...</h3>
+                    <button class="today-btn" onclick="window.goToToday()">Today</button>
+                </div>
+                <button class="cal-btn" onclick="window.changeMonth(1)">&gt;</button>
+            </div>
+            <div class="class-grid" id="main-calendar"></div>
+        </div>
+
+        <div class="active-view-controls">
+            <button class="view-nav-btn" onclick="window.changeSelectedDay(-1)">&#10094;</button>
+            <h2 id="selected-date-display" class="view-date-title">Today</h2>
+            <button class="view-nav-btn" onclick="window.changeSelectedDay(1)">&#10095;</button>
+        </div>
+
+        <div class="workout-container" id="main-container">
+            <div class="top-action-bar">
+                <button id="edit-routine-btn" class="action-mode-btn edit" onclick="window.toggleEditMode()">✎ Edit</button>
+                <button id="top-save-btn" class="action-mode-btn save" onclick="window.saveCurrentEntry()">💾 Save</button>
+            </div>
+
+            <div class="workout-card" id="active-card">
+                <div class="day-header-badge" id="active-day-header">Loading...</div>
+
+                <table id="active-table">
+                    <tbody id="active-tbody"></tbody>
+                </table>
+
+                <div id="rest-message" class="rest-view">
+                    <h2 class="rest-title">⛔️ Rest Day</h2>
+                    <p class="rest-sub">Enjoy the Recovery</p>
+                    <button class="action-mode-btn force-load-btn" onclick="window.forceWorkoutLoad()">Log Workout Anyway</button>
+                </div>
+
+                <button id="add-btn" class="add-row-btn" onclick="window.addCurrentExercise()">+ Add Exercise</button>
+                <button id="save-btn" class="action-mode-btn save" onclick="window.saveCurrentEntry()">Save Entry</button>
+            </div> 
+            
+            <div class="data-controls">
+                <h3 class="data-title">Data Management</h3>
+                <div class="data-buttons">
+                    <button class="data-btn export" onclick="window.exportData()">Backup Data 💾</button>
+                    <button class="data-btn import" onclick="window.triggerImport()">Restore Data 📂</button>
+                    <input type="file" id="import-file" accept=".json" onchange="window.importData(this)">
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <div class="footer-deck">
+                <span>&copy; 2026 Wilbert Guzmán</span>
+                <div class="social-group">
+                    <a href="https://instagram.com/wil.styled" target="_blank" rel="noopener noreferrer">
+                        <img src="images/instagram-logo.png" alt="Instagram" class="insta-icon">
+                    </a>
+                    <button class="contact-trigger">Contact Me</button>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <h3>Get in Touch</h3>
+            <div class="contact-options">
+                <a href="mailto:wil.styled@gmail.com" class="contact-btn"><span>📧</span>Email</a>
+                <a href="tel:7148032941" class="contact-btn"><span>📞</span>Call</a>
+                <a href="sms:7148032941" class="contact-btn"><span>💬</span>Text</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
