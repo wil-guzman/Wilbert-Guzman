@@ -269,7 +269,9 @@ function loadDay(date) {
     else if(headerBadge) headerBadge.innerText = headerTitle;
     const table = document.getElementById('active-table');
     const restMsg = document.getElementById('rest-message');
-    const saveBtns = [document.getElementById('save-btn'), document.getElementById('top-save-btn')];
+    
+    const saveBtns = [document.getElementById('save-btn')];
+    
     if (exercises.length === 0 && !isEditMode) {
         table.style.display = 'none'; restMsg.style.display = 'block';
         saveBtns.forEach(b => { if(b) b.style.display = 'none'; });
@@ -280,17 +282,14 @@ function loadDay(date) {
     }
 }
 
-function getOverallPR(exID) {
-    let pr = 0;
-    Object.values(globalLog).forEach(day => {
-        if(day[exID]) {
-            day[exID].forEach(set => {
-                const w = parseFloat(set.w);
-                if(w > pr) pr = w;
-            });
+function getLastSessionData(currentDateKey, exID) {
+    const pastDates = Object.keys(globalLog).filter(d => d < currentDateKey).sort().reverse();
+    for (let d of pastDates) {
+        if (globalLog[d][exID] && globalLog[d][exID].length > 0) {
+            return globalLog[d][exID];
         }
-    });
-    return pr;
+    }
+    return null;
 }
 
 function renderTable(exercises, dateKey) {
@@ -300,43 +299,80 @@ function renderTable(exercises, dateKey) {
     const dayLog = globalLog[dateKey] || {};
     exercises.forEach((exID, index) => {
         const exName = exerciseDB[exID] || globalNames[exID] || 'Unknown';
-        const setsData = dayLog[exID] || [{r:'', w:''}, {r:'', w:''}, {r:'', w:''}]; 
-        const overallPR = getOverallPR(exID);
+        const setsData = dayLog[exID] || [{r:'', w:''}, {r:'', w:''}, {r:'', w:''}, {r:'', w:''}];
+                const lastSession = getLastSessionData(dateKey, exID);
+        const isTimeBased = exName.toLowerCase().includes('plank');
+        let readyToUpWeight = false;
+        if (lastSession && lastSession.length > 0) {
+            if (isTimeBased) {
+                readyToUpWeight = lastSession.every(s => s.r && parseInt(s.r) >= 60);
+            } else {
+                readyToUpWeight = lastSession.every(s => s.r && parseInt(s.r) >= 12);
+            }
+        }
         const headerRow = document.createElement('tr');
         headerRow.className = 'ex-header-row';
-        let nameHTML = `<div class="ex-title">${exName}</div>`;
-        if(isEditMode) nameHTML = `<div class="ex-title"><button class="delete-btn" onclick="removeExercise(${index})">×</button> <input type="text" value="${exName}" class="mini-input" style="width:120px; text-align:left;" onchange="updateName('${exID}', this.value, ${index})"></div>`;
-        headerRow.innerHTML = `<td colspan="3">${nameHTML}</td>`;
+        
+                // Setup Button styling based on mode (Pill shape + Theme Colors)
+        const btnText = isEditMode ? "Done" : "✎ Edit";
+        const btnStyle = isEditMode 
+            ? "margin: 0; padding: 4px 14px; background: #ff4d4d; color: #000; border: 1px solid #ff4d4d; border-radius: 20px; font-weight: bold; font-size: 0.75rem; cursor: pointer;"
+            : "margin: 0; padding: 4px 14px; background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid #ff4d4d; border-radius: 20px; font-weight: bold; font-size: 0.75rem; cursor: pointer;";
+
+        let nameHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="ex-title">${exName}</div>
+                <button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button>
+            </div>
+        `;
+        
+        if(isEditMode) {
+            nameHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="ex-title" style="display: flex; align-items: center; gap: 8px;">
+                    <button class="delete-btn" onclick="removeExercise(${index})">×</button> 
+                    <input type="text" value="${exName}" class="mini-input" style="width:120px; text-align:left;" onchange="updateName('${exID}', this.value, ${index})">
+                </div>
+                <button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button>
+            </div>
+            `;
+        }
+        
+        headerRow.innerHTML = `<td colspan="3" style="position: sticky; top: 0; background: #111; z-index: 10; border-bottom: 1px solid #333; padding: 10px 5px;">${nameHTML}</td>`;
         tbody.appendChild(headerRow);
-        const labelRow = document.createElement('tr');
+                const labelRow = document.createElement('tr');
         labelRow.className = 'column-labels';
-        labelRow.innerHTML = `<td>SET</td><td>REPS</td><td>WEIGHT</td>`;
+        labelRow.innerHTML = `<td>SET</td><td>${isTimeBased ? 'TIME (s)' : 'REPS'}</td><td>WEIGHT</td>`;
         tbody.appendChild(labelRow);
-        let prDisplayed = false; 
-        setsData.forEach((set, setIndex) => {
+                setsData.forEach((set, setIndex) => {
             const setRow = document.createElement('tr');
             setRow.className = 'set-row';
             setRow.setAttribute('data-exid', exID);
-            const currentW = parseFloat(set.w);
-            let prTag = '';
-            if (currentW > 0 && currentW >= overallPR && !prDisplayed) { prTag = `<span class="row-pr-label">PR!</span>`; prDisplayed = true; }
-            setRow.innerHTML = `<td><span class="set-num">${setIndex + 1}</span></td><td><input type="number" class="mini-input" placeholder="0" value="${set.r}" oninput="this.style.width = Math.max(4, this.value.length + 1.5) + 'ch'" onchange="updateSet('${dateKey}', '${exID}', ${setIndex}, 'r', this.value)"></td><td><div class="weight-input-container"><input type="number" class="mini-input" placeholder="0" value="${set.w}" oninput="this.style.width = Math.max(4, this.value.length + 1.5) + 'ch'; updateKgDisplay(this)" onchange="updateSet('${dateKey}', '${exID}', ${setIndex}, 'w', this.value)"><span>lbs/</span><input type="number" class="mini-input" placeholder="0" value="${set.w ? Math.round(set.w * 0.453) : ''}" disabled><span>kg</span></div>${prTag}<button class="delete-set-btn" onclick="removeSetLogic('${dateKey}', '${exID}', ${setIndex})" title="Delete Set">🗑</button></td>`;
+            
+            const lastR = (lastSession && lastSession[setIndex] && lastSession[setIndex].r) ? lastSession[setIndex].r : '';
+            const lastW = (lastSession && lastSession[setIndex] && lastSession[setIndex].w) ? lastSession[setIndex].w : '';
+            
+                        const rHint = lastR ? `<div style="font-size:0.65rem; color:#888; margin-top:2px; letter-spacing:0.5px;">Last: ${lastR}${isTimeBased ? 's' : ''}</div>` : '';
+            
+            let wHint = '';
+            if (lastW) {
+                if (readyToUpWeight) {
+                    const upText = isTimeBased ? '(All 60s+)' : '(All 12+)';
+                    wHint = `<div style="font-size:0.65rem; color:#00e676; margin-top:2px; font-weight:bold; letter-spacing:0.5px;">↑ Up Weight ${upText}</div>`;
+                } else {
+                    wHint = `<div style="font-size:0.65rem; color:#888; margin-top:2px; letter-spacing:0.5px;">Last: ${lastW}</div>`;
+                }
+            }
+
+            const rPlaceholder = isTimeBased ? (lastR || 'sec') : (lastR || '0');
+
+            setRow.innerHTML = `<td><span class="set-num">${setIndex + 1}</span></td><td style="vertical-align: top; padding-top: 8px;"><input type="number" class="mini-input" placeholder="${rPlaceholder}" value="${set.r}" oninput="this.style.width = Math.max(4, this.value.length + 1.5) + 'ch'" onchange="updateSet('${dateKey}', '${exID}', ${setIndex}, 'r', this.value)">${rHint}</td><td style="vertical-align: top; padding-top: 8px;"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><div class="weight-input-container"><input type="number" class="mini-input" placeholder="${lastW || '0'}" value="${set.w}" oninput="this.style.width = Math.max(4, this.value.length + 1.5) + 'ch'" onchange="updateSet('${dateKey}', '${exID}', ${setIndex}, 'w', this.value)"><span>lbs</span></div>${wHint}</div>${isEditMode ? `<button class="delete-set-btn" onclick="removeSetLogic('${dateKey}', '${exID}', ${setIndex})" title="Delete Set" style="margin-left: 10px;">🗑</button>` : ''}</div></td>`;
             tbody.appendChild(setRow);
         });
         const addRow = document.createElement('tr');
         addRow.innerHTML = `<td colspan="3"><button class="add-set-btn" onclick="addSet('${dateKey}', '${exID}')">+ ADD SET</button></td>`;
         tbody.appendChild(addRow);
     });
-}
-
-window.updateKgDisplay = function(input) {
-    const container = input.closest('.weight-input-container');
-    const kgInput = container.querySelectorAll('.mini-input')[1];
-    if(input.value) {
-        const kgVal = Math.round(parseFloat(input.value) * 0.453);
-        kgInput.value = kgVal;
-        kgInput.style.width = Math.max(4, String(kgVal).length + 1.5) + 'ch';
-    } else { kgInput.value = ''; kgInput.style.width = '4ch'; }
 }
 
 function syncCurrentExerciseData(dateKey, targetExID) {
