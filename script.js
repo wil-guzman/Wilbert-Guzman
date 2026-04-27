@@ -228,15 +228,14 @@ window.renderCalendar = function() {
         const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const dayKey = `day${dateObj.getDay()}`;
         
-        // Logical check for Rest vs Missed
         const isRestDay = !globalRoutine[dateKey] && (!globalRoutine[dayKey] || globalRoutine[dayKey].length === 0);
 
         if (globalLog[dateKey]) {
-            cell.classList.add('has-log'); // Completed (Green)
+            cell.classList.add('has-log'); 
         } else if (isRestDay) {
-            cell.classList.add('rest-day'); // Planned Rest (Blue)
+            cell.classList.add('rest-day'); 
         } else {
-            cell.classList.add('no-log');   // Missed Workout (Red)
+            cell.classList.add('no-log');   
         }
 
         if (d === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear()) {
@@ -258,25 +257,30 @@ window.changeSelectedDay = function(dir) { selectedDate.setDate(selectedDate.get
 
 function loadDay(date) {
     const display = document.getElementById('selected-date-display');
-    if (!display) return;
     const dateKey = date.toISOString().split('T')[0];
     const dayKey = `day${date.getDay()}`;
-    display.innerText = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    
+    // Commands: Date Arrows and Display logic removed
+    if (display) display.innerText = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    
     const exercises = globalRoutine[dateKey] || globalRoutine[dayKey] || [];
     const headerTitle = globalHeaders[dateKey] || globalHeaders[dayKey] || "Rest Day";
     const headerBadge = document.getElementById('active-day-header');
-    if(isEditMode) headerBadge.innerHTML = `<input type="text" class="editable-input" value="${headerTitle}" onchange="updateHeader('${dateKey}', this.value)">`;
+    
+    if(isEditMode && headerBadge) headerBadge.innerHTML = `<input type="text" class="editable-input" value="${headerTitle}" onchange="updateHeader('${dateKey}', this.value)">`;
     else if(headerBadge) headerBadge.innerText = headerTitle;
+    
     const table = document.getElementById('active-table');
     const restMsg = document.getElementById('rest-message');
-    
     const saveBtns = [document.getElementById('save-btn')];
     
     if (exercises.length === 0 && !isEditMode) {
-        table.style.display = 'none'; restMsg.style.display = 'block';
+        if(table) table.style.display = 'none'; 
+        if(restMsg) restMsg.style.display = 'block';
         saveBtns.forEach(b => { if(b) b.style.display = 'none'; });
     } else {
-        table.style.display = 'table'; restMsg.style.display = 'none';
+        if(table) table.style.display = 'table'; 
+        if(restMsg) restMsg.style.display = 'none';
         saveBtns.forEach(b => { if(b) b.style.display = 'block'; });
         renderTable(exercises, dateKey);
     }
@@ -297,82 +301,97 @@ function renderTable(exercises, dateKey) {
     if(!tbody) return;
     tbody.innerHTML = '';
     const dayLog = globalLog[dateKey] || {};
+    
     exercises.forEach((exID, index) => {
         const exName = exerciseDB[exID] || globalNames[exID] || 'Unknown';
-        const setsData = dayLog[exID] || [{r:'', w:''}, {r:'', w:''}, {r:'', w:''}, {r:'', w:''}];
-                const lastSession = getLastSessionData(dateKey, exID);
-        const isTimeBased = exName.toLowerCase().includes('plank');
-        let readyToUpWeight = false;
-        if (lastSession && lastSession.length > 0) {
-            if (isTimeBased) {
-                readyToUpWeight = lastSession.every(s => s.r && parseInt(s.r) >= 60);
-            } else {
-                readyToUpWeight = lastSession.every(s => s.r && parseInt(s.r) >= 12);
-            }
-        }
-        const headerRow = document.createElement('tr');
-        headerRow.className = 'ex-header-row';
         
-                // Setup Button styling based on mode (Pill shape + Theme Colors)
-        const btnText = isEditMode ? "Done" : "✎ Edit";
-        const btnStyle = isEditMode 
-            ? "margin: 0; padding: 4px 14px; background: #ff4d4d; color: #000; border: 1px solid #ff4d4d; border-radius: 20px; font-weight: bold; font-size: 0.75rem; cursor: pointer;"
-            : "margin: 0; padding: 4px 14px; background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid #ff4d4d; border-radius: 20px; font-weight: bold; font-size: 0.75rem; cursor: pointer;";
-
-        let nameHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <div class="ex-title">${exName}</div>
-                <button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button>
-            </div>
-        `;
-        
-        if(isEditMode) {
-            nameHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <div class="ex-title" style="display: flex; align-items: center; gap: 8px;">
-                    <button class="delete-btn" onclick="removeExercise(${index})">×</button> 
-                    <input type="text" value="${exName}" class="mini-input" style="width:120px; text-align:left;" onchange="updateName('${exID}', this.value, ${index})">
-                </div>
-                <button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button>
-            </div>
-            `;
-        }
-        
-        headerRow.innerHTML = `<td colspan="3" style="position: sticky; top: 0; background: #111; z-index: 10; border-bottom: 1px solid #333; padding: 10px 5px;">${nameHTML}</td>`;
-        tbody.appendChild(headerRow);
-                const labelRow = document.createElement('tr');
-        labelRow.className = 'column-labels';
-        labelRow.innerHTML = `<td>SET</td><td>${isTimeBased ? 'TIME (s)' : 'REPS'}</td><td>WEIGHT</td>`;
-        tbody.appendChild(labelRow);
-                setsData.forEach((set, setIndex) => {
-            const setRow = document.createElement('tr');
-            setRow.className = 'set-row';
-            setRow.setAttribute('data-exid', exID);
+        // Command Integrated: Forearm Circuit Triple Split
+        if (exName === "Forearm Circuit") {
+            // 1. Render the main parent category header FIRST
+            const parentRow = document.createElement('tr');
+            parentRow.className = 'ex-header-row';
+            const btnText = isEditMode ? "Done" : "✎ Edit";
+            const btnStyle = "margin: 0; padding: 4px 14px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; border: 1px solid #B8860B; border-radius: 20px; font-weight: 800; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); transition: all 0.3s ease;";
             
-            const lastR = (lastSession && lastSession[setIndex] && lastSession[setIndex].r) ? lastSession[setIndex].r : '';
-            const lastW = (lastSession && lastSession[setIndex] && lastSession[setIndex].w) ? lastSession[setIndex].w : '';
+            let parentNameHTML = `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;"><div class="ex-title">Forearm Circuit</div><button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button></div>`;
             
-                        const rHint = lastR ? `<div style="font-size:0.65rem; color:#888; margin-top:2px; letter-spacing:0.5px;">Last: ${lastR}${isTimeBased ? 's' : ''}</div>` : '';
-            
-            let wHint = '';
-            if (lastW) {
-                if (readyToUpWeight) {
-                    const upText = isTimeBased ? '(All 60s+)' : '(All 12+)';
-                    wHint = `<div style="font-size:0.65rem; color:#00e676; margin-top:2px; font-weight:bold; letter-spacing:0.5px;">↑ Up Weight ${upText}</div>`;
-                } else {
-                    wHint = `<div style="font-size:0.65rem; color:#888; margin-top:2px; letter-spacing:0.5px;">Last: ${lastW}</div>`;
-                }
+            if (isEditMode) {
+                parentNameHTML = `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;"><div class="ex-title" style="display: flex; align-items: center; gap: 8px;"><button class="delete-btn" onclick="removeExercise(${index})">×</button><input type="text" value="Forearm Circuit" class="mini-input" style="width:120px; text-align:left;" onchange="updateName('${exID}', this.value, ${index})"></div><button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button></div>`;
             }
 
-            const rPlaceholder = isTimeBased ? (lastR || 'sec') : (lastR || '0');
+            parentRow.innerHTML = `<td colspan="3" style="position: sticky; top: 0; background: #111; z-index: 10; border-bottom: 1px solid #333; padding: 10px 5px;">${parentNameHTML}</td>`;
+            tbody.appendChild(parentRow);
 
-            setRow.innerHTML = `<td><span class="set-num">${setIndex + 1}</span></td><td style="vertical-align: top; padding-top: 8px;"><input type="number" class="mini-input" placeholder="${rPlaceholder}" value="${set.r}" oninput="this.style.width = Math.max(4, this.value.length + 1.5) + 'ch'" onchange="updateSet('${dateKey}', '${exID}', ${setIndex}, 'r', this.value)">${rHint}</td><td style="vertical-align: top; padding-top: 8px;"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><div class="weight-input-container"><input type="number" class="mini-input" placeholder="${lastW || '0'}" value="${set.w}" oninput="this.style.width = Math.max(4, this.value.length + 1.5) + 'ch'" onchange="updateSet('${dateKey}', '${exID}', ${setIndex}, 'w', this.value)"><span>lbs</span></div>${wHint}</div>${isEditMode ? `<button class="delete-set-btn" onclick="removeSetLogic('${dateKey}', '${exID}', ${setIndex})" title="Delete Set" style="margin-left: 10px;">🗑</button>` : ''}</div></td>`;
-            tbody.appendChild(setRow);
-        });
-        const addRow = document.createElement('tr');
-        addRow.innerHTML = `<td colspan="3"><button class="add-set-btn" onclick="addSet('${dateKey}', '${exID}')">+ ADD SET</button></td>`;
-        tbody.appendChild(addRow);
+            // 2. Loop and render the 3 individual circuits directly underneath
+            const subs = ["Standing Reverse Curls", "Wrist Curls", "Reverse Wrist Curls"];
+            subs.forEach(subName => {
+                const subID = exID + "-" + subName.replace(/\s+/g, '-').toLowerCase();
+                // We pass 'true' here at the end so the function knows to style it as a sub-exercise
+                renderSingleExercise(subID, subName, dateKey, tbody, index, true);
+            });
+        } else {
+            renderSingleExercise(exID, exName, dateKey, tbody, index, false);
+        }
     });
+}
+
+function renderSingleExercise(exID, exName, dateKey, tbody, index, isSub) {
+    const dayLog = globalLog[dateKey] || {};
+    const setsData = dayLog[exID] || [{r:'', w:''}, {r:'', w:''}, {r:'', w:''}, {r:'', w:''}];
+    const lastSession = getLastSessionData(dateKey, exID);
+    const isTimeBased = exName.toLowerCase().includes('plank');
+    let readyToUpWeight = false;
+    
+    if (lastSession && lastSession.length > 0) {
+        if (isTimeBased) readyToUpWeight = lastSession.every(s => s.r && parseInt(s.r) >= 60);
+        else readyToUpWeight = lastSession.every(s => s.r && parseInt(s.r) >= 12);
+    }
+
+    const headerRow = document.createElement('tr');
+    
+    // Apply different CSS classes based on if it is a sub-exercise or not
+    headerRow.className = isSub ? 'sub-ex-header-row' : 'ex-header-row';
+    const titleClass = isSub ? 'sub-ex-title' : 'ex-title';
+    
+    const btnText = isEditMode ? "Done" : "✎ Edit";
+    const btnStyle = "margin: 0; padding: 4px 14px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; border: 1px solid #B8860B; border-radius: 20px; font-weight: 800; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); transition: all 0.3s ease;";
+
+    // Note: We hide the Edit button (!isSub) if it's a sub-exercise, so only the parent can be edited/deleted
+    let nameHTML = `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;"><div class="${titleClass}">${exName}</div>${!isSub ? `<button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button>` : ''}</div>`;
+    
+    if(isEditMode && !isSub) {
+        nameHTML = `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;"><div class="${titleClass}" style="display: flex; align-items: center; gap: 8px;"><button class="delete-btn" onclick="removeExercise(${index})">×</button><input type="text" value="${exName}" class="mini-input" style="width:120px; text-align:left;" onchange="updateName('${exID}', this.value, ${index})"></div><button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button></div>`;
+    }
+    
+    // Strip away the sticky top formatting if it's a sub-category so it flows naturally under the parent
+    let tdStyle = isSub 
+        ? "background: #1a1a1a !important; border-bottom: 1px solid #333; padding: 12px 15px;" 
+        : "position: sticky; top: 0; background: #111; z-index: 10; border-bottom: 1px solid #333; padding: 10px 5px;";
+
+    headerRow.innerHTML = `<td colspan="3" style="${tdStyle}">${nameHTML}</td>`;
+    tbody.appendChild(headerRow);
+
+    const labelRow = document.createElement('tr');
+    labelRow.className = 'column-labels';
+    labelRow.innerHTML = `<td>SET</td><td>${isTimeBased ? 'TIME (s)' : 'REPS'}</td><td>WEIGHT</td>`;
+    tbody.appendChild(labelRow);
+
+    setsData.forEach((set, setIndex) => {
+        const setRow = document.createElement('tr');
+        setRow.className = 'set-row';
+        setRow.setAttribute('data-exid', exID);
+        const lastR = (lastSession?.[setIndex]?.r) || '';
+        const lastW = (lastSession?.[setIndex]?.w) || '';
+        const rHint = lastR ? `<div style="font-size:0.65rem; color:#888; margin-top:2px;">Last: ${lastR}${isTimeBased ? 's' : ''}</div>` : '';
+        let wHint = lastW ? (readyToUpWeight ? `<div style="font-size:0.65rem; color:#00e676; margin-top:2px; font-weight:bold;">↑ Up Weight</div>` : `<div style="font-size:0.65rem; color:#888; margin-top:2px;">Last: ${lastW}</div>`) : '';
+
+        setRow.innerHTML = `<td>${setIndex + 1}</td><td style="vertical-align: top; padding-top: 8px;"><input type="number" class="mini-input" placeholder="${lastR || '0'}" value="${set.r}" oninput="this.style.width = Math.max(4, this.value.length + 1.5) + 'ch'" onchange="updateSet('${dateKey}', '${exID}', ${setIndex}, 'r', this.value)">${rHint}</td><td style="vertical-align: top; padding-top: 8px;"><div style="display: flex; justify-content: space-between; align-items: flex-start;"><div><div class="weight-input-container"><input type="number" class="mini-input" placeholder="${lastW || '0'}" value="${set.w}" oninput="this.style.width = Math.max(4, this.value.length + 1.5) + 'ch'" onchange="updateSet('${dateKey}', '${exID}', ${setIndex}, 'w', this.value)"><span>lbs</span></div>${wHint}</div>${isEditMode ? `<button class="delete-set-btn" onclick="removeSetLogic('${dateKey}', '${exID}', ${setIndex})" style="margin-left: 10px;">🗑</button>` : ''}</div></td>`;
+        tbody.appendChild(setRow);
+    });
+
+    const addRow = document.createElement('tr');
+    addRow.innerHTML = `<td colspan="3"><button class="add-set-btn" onclick="addSet('${dateKey}', '${exID}')">+ ADD SET</button></td>`;
+    tbody.appendChild(addRow);
 }
 
 function syncCurrentExerciseData(dateKey, targetExID) {
@@ -394,7 +413,7 @@ window.addSet = function(dateKey, targetExID) {
 
 window.removeSetLogic = function(dateKey, exID, setIndex) {
     syncCurrentExerciseData(dateKey, exID); 
-    if (globalLog[dateKey] && globalLog[dateKey][exID]) {
+    if (globalLog[dateKey]?.[exID]) {
         globalLog[dateKey][exID].splice(setIndex, 1);
         if (globalLog[dateKey][exID].length === 0) delete globalLog[dateKey][exID];
         saveToStorage(); 
@@ -443,11 +462,25 @@ window.updateHeader = function(dateKey, newVal) {
 window.updateName = function(exID, newVal, index) { 
     const dateKey = selectedDate.toISOString().split('T')[0];
     const dayKey = `day${selectedDate.getDay()}`;
-    const newID = `custom-${Date.now()}`;
-    globalNames[newID] = newVal;
-    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = globalRoutine[dayKey] ? [...globalRoutine[dayKey]] : []; }
+    
+    const normalizedName = newVal.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const newID = `custom-${normalizedName}`;
+    
+    globalNames[newID] = newVal.trim();
+    
+    if (!globalRoutine[dateKey]) { 
+        globalRoutine[dateKey] = globalRoutine[dayKey] ? [...globalRoutine[dayKey]] : []; 
+    }
     globalRoutine[dateKey][index] = newID;
-    if (globalLog[dateKey] && globalLog[dateKey][exID]) { globalLog[dateKey][newID] = globalLog[dateKey][exID]; delete globalLog[dateKey][exID]; saveToStorage(); }
+    
+    if (globalLog[dateKey] && globalLog[dateKey][exID]) { 
+        if (exID !== newID) {
+            globalLog[dateKey][newID] = globalLog[dateKey][exID]; 
+            delete globalLog[dateKey][exID]; 
+        }
+        saveToStorage(); 
+    }
+    
     localStorage.setItem('customRoutine_v2', JSON.stringify(globalRoutine));
     localStorage.setItem('customNames_v2', JSON.stringify(globalNames));
     loadDay(selectedDate);

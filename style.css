@@ -664,6 +664,26 @@ body.lakers-mode .hub-card:hover p {
     color: #552583;
 }
 
+body.lakers-mode .contact-trigger {
+    background-color: var(--accent-color, #FDB927);
+    color: #552583;
+    box-shadow: 0 0 10px rgba(253, 185, 39, 0.4);
+}
+
+body.lakers-mode .modal-content {
+    border-color: var(--accent-color, #FDB927);
+}
+
+body.lakers-mode .modal-content h3 {
+    color: var(--accent-color, #FDB927);
+}
+
+body.lakers-mode .contact-btn {
+    border-color: var(--accent-color, #FDB927);
+    color: var(--accent-color, #FDB927);
+    background: rgba(85, 37, 131, 0.9);
+}
+
 /* ==========================================================================
    3. DODGERS / ABOUT PAGE GLOBAL
    ========================================================================== */
@@ -694,6 +714,26 @@ body.dodgers-mode .hero-subtitle::after {
     height: 3px;
     background-color: #ef3e42;
     box-shadow: 0 0 10px rgba(239, 62, 66, 0.5);
+}
+
+body.dodgers-mode .contact-trigger {
+    background-color: var(--accent-color, #1E90FF);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(30, 144, 255, 0.4);
+}
+
+body.dodgers-mode .modal-content {
+    border-color: var(--accent-color, #1E90FF);
+}
+
+body.dodgers-mode .modal-content h3 {
+    color: var(--accent-color, #1E90FF);
+}
+
+body.dodgers-mode .contact-btn {
+    border-color: var(--accent-color, #1E90FF);
+    color: var(--accent-color, #1E90FF);
+    background: rgba(0, 22, 43, 0.7);
 }
 
 .music-player {
@@ -809,6 +849,26 @@ body.fitness-mode .hero-subtitle::after {
     height: 3px;
     background-color: #ff4d4d;
     box-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+}
+
+body.fitness-mode .contact-trigger {
+    background-color: var(--accent-color, #ff4d4d);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(255, 77, 77, 0.4);
+}
+
+body.fitness-mode .modal-content {
+    border-color: var(--accent-color, #ff4d4d);
+}
+
+body.fitness-mode .modal-content h3 {
+    color: var(--accent-color, #ff4d4d);
+}
+
+body.fitness-mode .contact-btn {
+    border-color: var(--accent-color, #ff4d4d);
+    color: var(--accent-color, #ff4d4d);
+    background: rgba(20, 20, 20, 0.9);
 }
 
 .dashboard-header {
@@ -929,7 +989,7 @@ body.fitness-mode .hero-subtitle::after {
     position: sticky;
     top: -1px;
     z-index: 100;
-    background: linear-gradient(90deg, #1a0505 0%, #0a0a0a 100%) !important;
+    background: linear-gradient(90deg, #8b0000 0%, #ff1a1a 50%, #8b0000 100%) !important;
     border-bottom: 2px solid #ff4d4d;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.7);
     padding: 15px 10px;
@@ -1033,7 +1093,7 @@ body.fitness-mode .hero-subtitle::after {
     background: #111;
     border: 1px solid #333;
     border-radius: 12px;
-    padding: 0;
+    padding: 30px 0 0 0;
     width: 100%;
     overflow: visible;
     display: block;
@@ -1045,10 +1105,13 @@ body.fitness-mode .hero-subtitle::after {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     font-size: 1.1rem;
     font-weight: 800;
-    padding: 15px;
+    padding: 10px 30px;
     text-align: center;
-    width: 100%;
-    border-bottom: 2px solid #500000;
+    width: max-content;
+    margin: 0 auto 30px auto;
+    border-radius: 50px;
+    border: 1px solid #ff4d4d;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -1188,14 +1251,15 @@ input[type="number"] {
 }
 
 .action-mode-btn.edit {
-    border-color: #555;
-    color: #888;
+    border-color: #FFB300;
+    color: #FFB300;
 }
 
 .action-mode-btn.edit.active {
-    background: #333;
-    color: #fff;
-    border-color: #fff;
+    background: #FFB300;
+    color: #000;
+    border-color: #FFB300;
+    box-shadow: 0 0 10px rgba(255, 179, 0, 0.5);
 }
 
 .action-mode-btn.save {
@@ -1297,6 +1361,30 @@ input[type="number"] {
 
 #import-file {
     display: none;
+}
+
+.sub-ex-header-row td {
+    background: #1a1a1a !important;
+    border-bottom: 1px solid #333;
+    padding: 12px 15px;
+}
+
+.sub-ex-title {
+    font-weight: 700;
+    color: var(--accent-color, #ff4d4d);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sub-ex-title::before {
+    content: "↳";
+    color: #666;
+    font-size: 1.1rem;
+    font-weight: normal;
 }
 
 /* ==========================================================================

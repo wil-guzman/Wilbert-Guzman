@@ -42,16 +42,12 @@
             <div class="class-grid" id="main-calendar"></div>
         </div>
 
-        <div class="active-view-controls">
-            <button class="view-nav-btn" onclick="window.changeSelectedDay(-1)">&#10094;</button>
-            <h2 id="selected-date-display" class="view-date-title">Today</h2>
-            <button class="view-nav-btn" onclick="window.changeSelectedDay(1)">&#10095;</button>
+        <div class="active-split-pill-container">
+            <div class="day-header-badge" id="active-day-header">Loading...</div>
         </div>
         
         <div class="workout-container" id="main-container">
             <div class="workout-card" id="active-card">
-                <div class="day-header-badge" id="active-day-header">Loading...</div>
-
                 <table id="active-table">
                     <tbody id="active-tbody"></tbody>
                 </table>
