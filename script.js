@@ -180,26 +180,27 @@ function initMusic() {
    ========================================================================== */
 
 // 4-day repeating cycle setup
-const CYCLE_START_DATE = new Date(2026, 7, 3); // August 3, 2026
+const CYCLE_START_DATE = new Date(2026, 7, 3); // August 3, 2026 (Diff = 0)
 CYCLE_START_DATE.setHours(0, 0, 0, 0);
 
+// Mapped exactly to the modulo result (0, 1, 2, 3)
 const cycleRoutine = {
-    1: ['d1-ex1', 'd1-ex2', 'd1-ex3', 'd1-ex4', 'd1-ex5'],                  // Chest / Triceps
-    2: ['d2-ex1', 'd2-ex2', 'd2-ex3', 'd2-ex4', 'd2-ex5', 'd2-ex6'],         // Back / Biceps
-    3: ['d3-ex1', 'd3-ex2', 'd3-ex3', 'd3-ex4', 'd3-ex5', 'd3-ex6', 'd3-ex7'],// Legs / Shoulders
-    0: []                                                                    // Rest Day
+    0: ['d1-ex1', 'd1-ex2', 'd1-ex3', 'd1-ex4', 'd1-ex5', 'd-forearm'],                  // Diff 0: Chest / Tris + Forearms
+    1: ['d2-ex1', 'd2-ex2', 'd2-ex3', 'd2-ex4', 'd2-ex5', 'd2-ex6'],                     // Diff 1: Back / Biceps
+    2: ['d3-ex1', 'd3-ex2', 'd3-ex3', 'd3-ex4', 'd3-ex5', 'd3-ex6', 'd3-ex7', 'd-forearm'],// Diff 2: Legs / Shoulders + Forearms
+    3: []                                                                                // Diff 3: Rest Day
 };
 
 const cycleHeaders = {
-    1: "Chest & Triceps",
-    2: "Back & Biceps",
-    3: "Legs & Shoulders",
-    0: "Rest Day"
+    0: "Chest & Triceps",
+    1: "Back & Biceps",
+    2: "Legs & Shoulders",
+    3: "Rest Day"
 };
 
 const exerciseDB = {
     // Day 1: Chest & Triceps
-    'd1-ex1': 'Barbell Bench Press', 
+    'd1-ex1': 'Dumbbell Bench Press', 
     'd1-ex2': 'Incline Dumbbell Press', 
     'd1-ex3': 'Dumbbell Chest Fly', 
     'd1-ex4': 'Skull Crushers', 
@@ -221,7 +222,10 @@ const exerciseDB = {
     'd3-ex5': 'Dumbbell Lateral Raises', 
     'd3-ex6': 'Face Pulls', 
     'd3-ex7': 'Standing Calf Raises',
+    'd3-ex8': 'Seated Calf Raises', // Alternating option
 
+    // Custom / Recurring
+    'd-forearm': 'Forearm Circuit',
     'custom': 'Custom Exercise'
 };
 
@@ -235,15 +239,39 @@ let globalRoutine = JSON.parse(localStorage.getItem('customRoutine_v2')) || {};
 let globalHeaders = JSON.parse(localStorage.getItem('customHeaders_v2')) || {};
 let globalNames = JSON.parse(localStorage.getItem('customNames_v2')) || {}; 
 
-// Helper function to map any date to cycle day 1, 2, 3, or 0 (Rest)
+// Helper function to map any date to cycle day 0, 1, 2, or 3
 function getCycleDay(date) {
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
-    // Use Math.round to account for Daylight Savings Time shifts where a day might be 23 or 25 hours.
     const diffInDays = Math.round((targetDate.getTime() - CYCLE_START_DATE.getTime()) / (1000 * 3600 * 24));
-    return (diffInDays % 4 + 4) % 4;
+    return ((diffInDays % 4) + 4) % 4;
 }
 
+// Helper function to retrieve exercises and dynamically alternate calf raises
+function getExercisesForDate(dateObj, dateKey, cycleNum) {
+    // If user saved a custom edit for this specific day, load that instead of generating
+    if (globalRoutine[dateKey]) {
+        return [...globalRoutine[dateKey]];
+    }
+
+    let exercises = cycleRoutine[cycleNum] ? [...cycleRoutine[cycleNum]] : [];
+    
+    // On Legs & Shoulders (Cycle Day 2), calculate if we need Seated or Standing Calf Raises
+    if (cycleNum === 2) {
+        const diffInDays = Math.round((dateObj.getTime() - CYCLE_START_DATE.getTime()) / (1000 * 3600 * 24));
+        const cycleNumber = Math.floor(diffInDays / 4);
+        
+        // If it's an odd cycle number (e.g., Cycle 1, 3, 5), swap to Seated. (Cycle 0 gets Standing).
+        if (Math.abs(cycleNumber % 2) === 1) {
+            const calfIndex = exercises.indexOf('d3-ex7');
+            if (calfIndex !== -1) {
+                exercises[calfIndex] = 'd3-ex8'; // Swap 'Standing' to 'Seated'
+            }
+        }
+    }
+    
+    return exercises;
+}
 
 function initFitness() {
     renderCalendar();
@@ -272,7 +300,8 @@ window.renderCalendar = function() {
         const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const cycleNum = getCycleDay(dateObj);
         
-        const exercisesForDay = globalRoutine[dateKey] || cycleRoutine[cycleNum] || [];
+        // Fetch dynamically alternated exercises
+        const exercisesForDay = getExercisesForDate(dateObj, dateKey, cycleNum);
         const isRestDay = exercisesForDay.length === 0;
 
         if (globalLog[dateKey] && Object.keys(globalLog[dateKey]).length > 0) {
@@ -308,7 +337,8 @@ function loadDay(date) {
     
     if (display) display.innerText = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     
-    const exercises = globalRoutine[dateKey] || cycleRoutine[cycleNum] || [];
+    // Fetch dynamically alternated exercises
+    const exercises = getExercisesForDate(date, dateKey, cycleNum);
     const headerTitle = globalHeaders[dateKey] || cycleHeaders[cycleNum] || "Rest Day";
     const headerBadge = document.getElementById('active-day-header');
     
@@ -505,8 +535,9 @@ window.updateName = function(exID, newVal, index) {
     
     globalNames[newID] = newVal.trim();
     
+    // Check using the dynamic calf raise logic first
     if (!globalRoutine[dateKey]) { 
-        globalRoutine[dateKey] = cycleRoutine[cycleNum] ? [...cycleRoutine[cycleNum]] : []; 
+        globalRoutine[dateKey] = getExercisesForDate(selectedDate, dateKey, cycleNum); 
     }
     globalRoutine[dateKey][index] = newID;
     
@@ -526,7 +557,7 @@ window.updateName = function(exID, newVal, index) {
 window.removeExercise = function(index) {
     const dateKey = selectedDate.toISOString().split('T')[0];
     const cycleNum = getCycleDay(selectedDate);
-    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = cycleRoutine[cycleNum] ? [...cycleRoutine[cycleNum]] : []; }
+    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = getExercisesForDate(selectedDate, dateKey, cycleNum); }
     globalRoutine[dateKey].splice(index, 1);
     localStorage.setItem('customRoutine_v2', JSON.stringify(globalRoutine));
     loadDay(selectedDate);
@@ -537,7 +568,7 @@ window.addCurrentExercise = function() {
     const cycleNum = getCycleDay(selectedDate);
     const newID = `custom-${Date.now()}`;
     globalNames[newID] = "New Exercise";
-    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = cycleRoutine[cycleNum] ? [...cycleRoutine[cycleNum]] : []; }
+    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = getExercisesForDate(selectedDate, dateKey, cycleNum); }
     globalRoutine[dateKey].push(newID);
     localStorage.setItem('customRoutine_v2', JSON.stringify(globalRoutine));
     localStorage.setItem('customNames_v2', JSON.stringify(globalNames));
