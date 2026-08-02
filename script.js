@@ -176,19 +176,53 @@ function initMusic() {
 }
 
 /* ==========================================================================
-   4. FITNESS PAGE LOGIC
+   4. FITNESS PAGE LOGIC (3-On / 1-Off Dynamic Split)
    ========================================================================== */
 
-const defaultRoutine = {
-    day1: ['d1-ex1', 'd1-ex2', 'd1-ex3', 'd1-ex4', 'd1-ex5', 'd1-ex6'], day2: ['d2-ex1', 'd2-ex2', 'd2-ex3', 'd2-ex4', 'd2-ex5'], day3: ['d3-ex1', 'd3-ex2', 'd3-ex3', 'd3-ex4', 'd3-ex5', 'd3-ex6'], day4: ['d4-ex1', 'd4-ex2', 'd4-ex3', 'd4-ex4', 'd4-ex5', 'd4-ex6', 'd4-ex7'], day5: ['d5-ex1', 'd5-ex2', 'd5-ex3', 'd5-ex4', 'd5-ex5'], day0: [], day6: []
+// 4-day repeating cycle setup
+const CYCLE_START_DATE = new Date(2026, 7, 3); // August 3, 2026
+CYCLE_START_DATE.setHours(0, 0, 0, 0);
+
+const cycleRoutine = {
+    1: ['d1-ex1', 'd1-ex2', 'd1-ex3', 'd1-ex4', 'd1-ex5'],                  // Chest / Triceps
+    2: ['d2-ex1', 'd2-ex2', 'd2-ex3', 'd2-ex4', 'd2-ex5', 'd2-ex6'],         // Back / Biceps
+    3: ['d3-ex1', 'd3-ex2', 'd3-ex3', 'd3-ex4', 'd3-ex5', 'd3-ex6', 'd3-ex7'],// Legs / Shoulders
+    0: []                                                                    // Rest Day
 };
 
-const defaultHeaders = {
-    day1: "Upper Body + Forearms", day2: "Lower Body + Abs", day3: "Push + Forearms", day4: "Pull + Abs", day5: "Legs + Forearms", day0: "Rest", day6: "Rest"
+const cycleHeaders = {
+    1: "Chest & Triceps",
+    2: "Back & Biceps",
+    3: "Legs & Shoulders",
+    0: "Rest Day"
 };
 
 const exerciseDB = {
-    'd1-ex1': 'Seated Chest Press', 'd1-ex2': 'Lat Pulldowns', 'd1-ex3': 'Seated Cable Rows', 'd1-ex4': 'Overhead Press', 'd1-ex5': 'Skullcrushers', 'd1-ex6': 'Forearm Circuit', 'd2-ex1': 'Dumbbell Goblet Squat', 'd2-ex2': 'Dumbbell RDLs', 'd2-ex3': 'Standing Calf Raises', 'd2-ex4': 'Hanging Leg Raises', 'd2-ex5': 'Plank', 'd3-ex1': 'Seated Incline Chest Press', 'd3-ex2': 'Seated Decline Chest Press', 'd3-ex3': 'Pec Deck', 'd3-ex4': 'Dumbbell Lateral Raises', 'd3-ex5': 'Tricep Rope Pushdowns', 'd3-ex6': 'Forearm Circuit', 'd4-ex1': 'Straight Arm Pulldowns', 'd4-ex2': 'Bent Over Dumbbell Rows', 'd4-ex3': 'Face Pulls', 'd4-ex4': 'Dumbbell Shrugs', 'd4-ex5': 'Bicep Curls', 'd4-ex6': 'Cable Crunches', 'd4-ex7': 'Russian Twists', 'd5-ex1': 'Dumbbell Reverse Lunges', 'd5-ex2': 'Lying Leg Curls', 'd5-ex3': 'Seated Calf Raises', 'd5-ex4': 'Hammer Curls', 'd5-ex5': 'Forearm Circuit', 'custom': 'Custom Exercise'
+    // Day 1: Chest & Triceps
+    'd1-ex1': 'Barbell Bench Press', 
+    'd1-ex2': 'Incline Dumbbell Press', 
+    'd1-ex3': 'Dumbbell Chest Fly', 
+    'd1-ex4': 'Skull Crushers', 
+    'd1-ex5': 'Tricep Rope Pushdowns',
+
+    // Day 2: Back & Biceps
+    'd2-ex1': 'Lat Pulldowns', 
+    'd2-ex2': 'Seated Cable Rows', 
+    'd2-ex3': 'V-Bar Pulldown', 
+    'd2-ex4': 'Preacher Curls', 
+    'd2-ex5': 'Rope Hammer Curls', 
+    'd2-ex6': 'Shoulder Shrugs',
+
+    // Day 3: Legs & Shoulders
+    'd3-ex1': 'Barbell Squat', 
+    'd3-ex2': 'Dumbbell RDLs', 
+    'd3-ex3': 'Leg Extension', 
+    'd3-ex4': 'Dumbbell Shoulder Press', 
+    'd3-ex5': 'Dumbbell Lateral Raises', 
+    'd3-ex6': 'Face Pulls', 
+    'd3-ex7': 'Standing Calf Raises',
+
+    'custom': 'Custom Exercise'
 };
 
 let currentDate = new Date();
@@ -197,9 +231,19 @@ selectedDate.setHours(0,0,0,0);
 let isEditMode = false;
 
 let globalLog = JSON.parse(localStorage.getItem('workoutLog_v3')) || {}; 
-let globalRoutine = JSON.parse(localStorage.getItem('customRoutine_v2')) || defaultRoutine;
-let globalHeaders = JSON.parse(localStorage.getItem('customHeaders_v2')) || defaultHeaders;
+let globalRoutine = JSON.parse(localStorage.getItem('customRoutine_v2')) || {};
+let globalHeaders = JSON.parse(localStorage.getItem('customHeaders_v2')) || {};
 let globalNames = JSON.parse(localStorage.getItem('customNames_v2')) || {}; 
+
+// Helper function to map any date to cycle day 1, 2, 3, or 0 (Rest)
+function getCycleDay(date) {
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+    // Use Math.round to account for Daylight Savings Time shifts where a day might be 23 or 25 hours.
+    const diffInDays = Math.round((targetDate.getTime() - CYCLE_START_DATE.getTime()) / (1000 * 3600 * 24));
+    return (diffInDays % 4 + 4) % 4;
+}
+
 
 function initFitness() {
     renderCalendar();
@@ -226,11 +270,12 @@ window.renderCalendar = function() {
         
         const dateObj = new Date(year, month, d);
         const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const dayKey = `day${dateObj.getDay()}`;
+        const cycleNum = getCycleDay(dateObj);
         
-        const isRestDay = !globalRoutine[dateKey] && (!globalRoutine[dayKey] || globalRoutine[dayKey].length === 0);
+        const exercisesForDay = globalRoutine[dateKey] || cycleRoutine[cycleNum] || [];
+        const isRestDay = exercisesForDay.length === 0;
 
-        if (globalLog[dateKey]) {
+        if (globalLog[dateKey] && Object.keys(globalLog[dateKey]).length > 0) {
             cell.classList.add('has-log'); 
         } else if (isRestDay) {
             cell.classList.add('rest-day'); 
@@ -244,6 +289,7 @@ window.renderCalendar = function() {
         
         cell.onclick = () => { 
             selectedDate = new Date(year, month, d); 
+            selectedDate.setHours(0,0,0,0);
             renderCalendar(); 
             loadDay(selectedDate); 
         };
@@ -258,13 +304,12 @@ window.changeSelectedDay = function(dir) { selectedDate.setDate(selectedDate.get
 function loadDay(date) {
     const display = document.getElementById('selected-date-display');
     const dateKey = date.toISOString().split('T')[0];
-    const dayKey = `day${date.getDay()}`;
+    const cycleNum = getCycleDay(date);
     
-    // Commands: Date Arrows and Display logic removed
     if (display) display.innerText = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     
-    const exercises = globalRoutine[dateKey] || globalRoutine[dayKey] || [];
-    const headerTitle = globalHeaders[dateKey] || globalHeaders[dayKey] || "Rest Day";
+    const exercises = globalRoutine[dateKey] || cycleRoutine[cycleNum] || [];
+    const headerTitle = globalHeaders[dateKey] || cycleHeaders[cycleNum] || "Rest Day";
     const headerBadge = document.getElementById('active-day-header');
     
     if(isEditMode && headerBadge) headerBadge.innerHTML = `<input type="text" class="editable-input" value="${headerTitle}" onchange="updateHeader('${dateKey}', this.value)">`;
@@ -274,7 +319,7 @@ function loadDay(date) {
     const restMsg = document.getElementById('rest-message');
     const saveBtns = [document.getElementById('save-btn')];
     
-    if (exercises.length === 0 && !isEditMode) {
+    if (exercises.length === 0 && !isEditMode && !globalLog[dateKey]) {
         if(table) table.style.display = 'none'; 
         if(restMsg) restMsg.style.display = 'block';
         saveBtns.forEach(b => { if(b) b.style.display = 'none'; });
@@ -300,14 +345,11 @@ function renderTable(exercises, dateKey) {
     const tbody = document.getElementById('active-tbody');
     if(!tbody) return;
     tbody.innerHTML = '';
-    const dayLog = globalLog[dateKey] || {};
     
     exercises.forEach((exID, index) => {
         const exName = exerciseDB[exID] || globalNames[exID] || 'Unknown';
         
-        // Command Integrated: Forearm Circuit Triple Split
         if (exName === "Forearm Circuit") {
-            // 1. Render the main parent category header FIRST
             const parentRow = document.createElement('tr');
             parentRow.className = 'ex-header-row';
             const btnText = isEditMode ? "Done" : "✎ Edit";
@@ -322,11 +364,9 @@ function renderTable(exercises, dateKey) {
             parentRow.innerHTML = `<td colspan="3" style="position: sticky; top: 0; background: #111; z-index: 10; border-bottom: 1px solid #333; padding: 10px 5px;">${parentNameHTML}</td>`;
             tbody.appendChild(parentRow);
 
-            // 2. Loop and render the 3 individual circuits directly underneath
             const subs = ["Standing Reverse Curls", "Wrist Curls", "Reverse Wrist Curls"];
             subs.forEach(subName => {
                 const subID = exID + "-" + subName.replace(/\s+/g, '-').toLowerCase();
-                // We pass 'true' here at the end so the function knows to style it as a sub-exercise
                 renderSingleExercise(subID, subName, dateKey, tbody, index, true);
             });
         } else {
@@ -337,7 +377,7 @@ function renderTable(exercises, dateKey) {
 
 function renderSingleExercise(exID, exName, dateKey, tbody, index, isSub) {
     const dayLog = globalLog[dateKey] || {};
-    const setsData = dayLog[exID] || [{r:'', w:''}, {r:'', w:''}, {r:'', w:''}, {r:'', w:''}];
+    const setsData = dayLog[exID] || [{r:'', w:''}, {r:'', w:''}, {r:'', w:''}];
     const lastSession = getLastSessionData(dateKey, exID);
     const isTimeBased = exName.toLowerCase().includes('plank');
     let readyToUpWeight = false;
@@ -348,22 +388,18 @@ function renderSingleExercise(exID, exName, dateKey, tbody, index, isSub) {
     }
 
     const headerRow = document.createElement('tr');
-    
-    // Apply different CSS classes based on if it is a sub-exercise or not
     headerRow.className = isSub ? 'sub-ex-header-row' : 'ex-header-row';
     const titleClass = isSub ? 'sub-ex-title' : 'ex-title';
     
     const btnText = isEditMode ? "Done" : "✎ Edit";
     const btnStyle = "margin: 0; padding: 4px 14px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; border: 1px solid #B8860B; border-radius: 20px; font-weight: 800; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); transition: all 0.3s ease;";
 
-    // Note: We hide the Edit button (!isSub) if it's a sub-exercise, so only the parent can be edited/deleted
     let nameHTML = `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;"><div class="${titleClass}">${exName}</div>${!isSub ? `<button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button>` : ''}</div>`;
     
     if(isEditMode && !isSub) {
         nameHTML = `<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;"><div class="${titleClass}" style="display: flex; align-items: center; gap: 8px;"><button class="delete-btn" onclick="removeExercise(${index})">×</button><input type="text" value="${exName}" class="mini-input" style="width:120px; text-align:left;" onchange="updateName('${exID}', this.value, ${index})"></div><button class="action-mode-btn edit" style="${btnStyle}" onclick="window.toggleEditMode()">${btnText}</button></div>`;
     }
     
-    // Strip away the sticky top formatting if it's a sub-category so it flows naturally under the parent
     let tdStyle = isSub 
         ? "background: #1a1a1a !important; border-bottom: 1px solid #333; padding: 12px 15px;" 
         : "position: sticky; top: 0; background: #111; z-index: 10; border-bottom: 1px solid #333; padding: 10px 5px;";
@@ -430,7 +466,8 @@ window.updateSet = function(dateKey, exID, setIndex, field, value) {
 }
 
 window.saveCurrentEntry = function() {
-    saveToStorage(); renderCalendar(); 
+    saveToStorage(); 
+    renderCalendar(); 
     const btn = document.getElementById('save-btn');
     if(btn) { const old = btn.innerText; btn.innerText = "Saved!"; setTimeout(() => btn.innerText = old, 1000); }
 }
@@ -461,7 +498,7 @@ window.updateHeader = function(dateKey, newVal) {
 
 window.updateName = function(exID, newVal, index) { 
     const dateKey = selectedDate.toISOString().split('T')[0];
-    const dayKey = `day${selectedDate.getDay()}`;
+    const cycleNum = getCycleDay(selectedDate);
     
     const normalizedName = newVal.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const newID = `custom-${normalizedName}`;
@@ -469,7 +506,7 @@ window.updateName = function(exID, newVal, index) {
     globalNames[newID] = newVal.trim();
     
     if (!globalRoutine[dateKey]) { 
-        globalRoutine[dateKey] = globalRoutine[dayKey] ? [...globalRoutine[dayKey]] : []; 
+        globalRoutine[dateKey] = cycleRoutine[cycleNum] ? [...cycleRoutine[cycleNum]] : []; 
     }
     globalRoutine[dateKey][index] = newID;
     
@@ -488,8 +525,8 @@ window.updateName = function(exID, newVal, index) {
 
 window.removeExercise = function(index) {
     const dateKey = selectedDate.toISOString().split('T')[0];
-    const dayKey = `day${selectedDate.getDay()}`;
-    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = globalRoutine[dayKey] ? [...globalRoutine[dayKey]] : []; }
+    const cycleNum = getCycleDay(selectedDate);
+    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = cycleRoutine[cycleNum] ? [...cycleRoutine[cycleNum]] : []; }
     globalRoutine[dateKey].splice(index, 1);
     localStorage.setItem('customRoutine_v2', JSON.stringify(globalRoutine));
     loadDay(selectedDate);
@@ -497,10 +534,10 @@ window.removeExercise = function(index) {
 
 window.addCurrentExercise = function() {
     const dateKey = selectedDate.toISOString().split('T')[0];
-    const dayKey = `day${selectedDate.getDay()}`;
+    const cycleNum = getCycleDay(selectedDate);
     const newID = `custom-${Date.now()}`;
     globalNames[newID] = "New Exercise";
-    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = globalRoutine[dayKey] ? [...globalRoutine[dayKey]] : []; }
+    if (!globalRoutine[dateKey]) { globalRoutine[dateKey] = cycleRoutine[cycleNum] ? [...cycleRoutine[cycleNum]] : []; }
     globalRoutine[dateKey].push(newID);
     localStorage.setItem('customRoutine_v2', JSON.stringify(globalRoutine));
     localStorage.setItem('customNames_v2', JSON.stringify(globalNames));
@@ -508,12 +545,15 @@ window.addCurrentExercise = function() {
 }
 
 window.forceWorkoutLoad = function() { window.addCurrentExercise(); }
+
 window.exportData = function() {
     const data = { log: globalLog, routine: globalRoutine, headers: globalHeaders, names: globalNames };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
     const a = document.createElement('a'); a.href = dataStr; a.download = "iron_temple_v3_backup.json"; a.click();
 }
+
 window.triggerImport = function() { document.getElementById('import-file').click(); }
+
 window.importData = function(input) {
     const file = input.files[0];
     if (!file) return;
@@ -522,7 +562,13 @@ window.importData = function(input) {
         try {
             const data = JSON.parse(e.target.result);
             if(data.log) globalLog = data.log;
+            if(data.routine) globalRoutine = data.routine;
+            if(data.headers) globalHeaders = data.headers;
+            if(data.names) globalNames = data.names;
             localStorage.setItem('workoutLog_v3', JSON.stringify(globalLog));
+            localStorage.setItem('customRoutine_v2', JSON.stringify(globalRoutine));
+            localStorage.setItem('customHeaders_v2', JSON.stringify(globalHeaders));
+            localStorage.setItem('customNames_v2', JSON.stringify(globalNames));
             location.reload();
         } catch (err) { alert("Invalid File"); }
     };
